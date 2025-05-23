@@ -1,0 +1,129 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #ffab5b;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.signup {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: #d4e8d4; 
+  width:100vw;
+  overflow: hidden;/* Light green background */
+}
+
+.signup-container {
+  display: flex;
+  width: 750px; /* Adjust width */
+  height: 400px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.signup-image {
+  flex: 1;
+  width: 50%;
+  height: 100%;
+ /*  background-position: center;
+  background-repeat: no-repeat; */
+}
+
+.signup-form {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #E4AC80;
+  padding: 30px;
+  height: 100%;
+  width: 50%;
+}
+
+.signup-form h1 {
+  font-size: 22px;
+  color: #000000; /* Green shade */
+  margin-bottom: 20px;
+}
+
+.signup-form .MuiTextField-root,
+.signup-form .MuiFormControl-root {
+  width: 100%;
+}
+
+.signup-form .MuiOutlinedInput-root {
+  border-radius: 25px;
+  background: white;
+}
+
+.signup-form .MuiButton-contained {
+  background-color: #C4B1CF;
+  color: rgb(0, 0, 0);
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 25px;
+  margin-top: 10px;
+  text-transform: uppercase;
+}
+
+.signup-form .MuiButton-contained:hover {
+  background-color: #b683d4;
+}
+
+.forgot-password {
+  font-size: 12px;
+  color: #000000;
+  text-decoration: none;
+  align-self: flex-start;
+  margin-top: 5px;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #f8f7ff;
+  color: #C4B1CF; 
+  font-size: 1.2rem;
+  font-weight: 500;
+}
