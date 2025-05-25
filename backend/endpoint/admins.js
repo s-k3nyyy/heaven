@@ -1,75 +1,67 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../dbconnector/index');  // Assuming dbconnector is correctly configured
-
-// Get all admins
-router.get("/", async (req, res) => {
-    try {
-        const [rows] = await db.query('SELECT * FROM admins');
-        res.json(rows);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Database error" });
-    }
-});
-
-// Get a specific admin by ID
-router.get("/:admin_id", async (req, res) => {
-    const { admin_id } = req.params;
-    try {
-        const [rows] = await db.query('SELECT * FROM admins WHERE admin_id = ?', [admin_id]);
-        if (rows.length === 0) {
-            return res.status(404).json({ message: "Admin not found" });
-        }
-        res.json(rows[0]);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Database error" });
-    }
-});
+const db = require('../dbconnector/index');
 
 // Create a new admin
-router.post("/", async (req, res) => {
-    const { admin_id, email, created_at, first_name, last_name } = req.body;
+router.post('/', async (req, res) => {
     try {
-        const [result] = await db.query('INSERT INTO admins (admin_id, email, created_at, first_name, last_name) VALUES (?, ?, ?, ?, ?)', 
-            [admin_id, email, created_at, first_name, last_name]);
-        res.status(201).json({ admin_id: result.insertId });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Database error" });
+        const { id, email, first_name, last_name, role } = req.body;
+        
+        console.log('Creating admin:', { id, email, first_name, last_name });
+
+        // Check if admin already exists
+        const [existing] = await db.query(
+            'SELECT admin_id FROM admins WHERE admin_id = ? OR email = ?',
+            [id, email]
+        );
+
+        if (existing.length > 0) {
+            console.log('Admin already exists');
+            return res.status(200).json({ message: 'Admin already exists' });
+        }
+
+        // Insert new admin
+        const insertQuery = `
+            INSERT INTO admins (admin_id, email, first_name, last_name)
+            VALUES (?, ?, ?, ?)
+        `;
+        
+        await db.query(insertQuery, [id, email, first_name, last_name]);
+        
+        console.log('✅ Admin created successfully');
+        res.status(201).json({ message: 'Admin created successfully' });
+
+    } catch (error) {
+        console.error('❌ Error creating admin:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
-// Update an admin
-router.put("/:admin_id", async (req, res) => {
-    const { admin_id } = req.params;
-    const { email, created_at, first_name, last_name } = req.body;
+// Get all admins
+router.get('/', async (req, res) => {
     try {
-        const [result] = await db.query('UPDATE admins SET email = ?, created_at = ?, first_name = ?, last_name = ? WHERE admin_id = ?', 
-            [email, created_at, first_name, last_name, admin_id]);
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ message: "Admin not found" });
-        }
-        res.json({ message: "Admin updated successfully" });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Database error" });
+        const [admins] = await db.query('SELECT * FROM admins');
+        res.status(200).json(admins);
+    } catch (error) {
+        console.error('Error fetching admins:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
-// Delete an admin
-router.delete("/:admin_id", async (req, res) => {
-    const { admin_id } = req.params;
+// Get admin by ID
+router.get('/:id', async (req, res) => {
     try {
-        const [result] = await db.query('DELETE FROM admins WHERE admin_id = ?', [admin_id]);
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ message: "Admin not found" });
+        const { id } = req.params;
+        const [admin] = await db.query('SELECT * FROM admins WHERE admin_id = ?', [id]);
+        
+        if (admin.length === 0) {
+            return res.status(404).json({ error: 'Admin not found' });
         }
-        res.json({ message: "Admin deleted successfully" });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Database error" });
+        
+        res.status(200).json(admin[0]);
+    } catch (error) {
+        console.error('Error fetching admin:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
