@@ -17,7 +17,7 @@ import ProtectedRoute from './protection';
 import Verify from './authentication/verify';
 
 import Layoutadmin from './layoutadmin';
-import OrphanageDashboard from './orphanagestats/orphanage-dashbord';
+import orphanageDashboard from './orphanagestats/orphanage-dashbord';
 import SponsorshipsPage from './orphanagestats/sponsorship';
 import Donations from './orphanagestats/donations';
 import Reports from './orphanagestats/reportspage';
@@ -39,7 +39,7 @@ function App() {
          
 
         
-          <Route element={<ProtectedRoute />}>
+         
           <Route element={<Layout />}>
           <Route path="/home" element={<Home />} />
           <Route path='/explore' element={<Explore/>} />
@@ -47,12 +47,12 @@ function App() {
           <Route path= '/sponsorshipform' element={<SponsorshipForm/>}/>
           <Route path="/donationpage" element={<DonationPage/>} />
           </Route>
-          </Route>
+    
 
 
           <Route element={<Layoutadmin />}>
           <Route path='/explore' element={<Explore/>} />
-          <Route path= '/OrphanageDashboard' element={<OrphanageDashboard/>}/>
+          <Route path='/opharnagedashboard' element={<orphanageDashboard/>}/>
           <Route path= '/sponsorshipspage' element={<SponsorshipsPage/>}/>
           <Route path='/admin-donations' element={<Donations/>} />
           <Route path='/reports' element={<Reports/>} />

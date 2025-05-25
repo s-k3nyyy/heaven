@@ -134,7 +134,7 @@ const SettingsPage = () => {
   );
 };
 
-const OrphanageDashboard = () => {
+const orphanageDashboard = () => {
   return (
     <Box sx={{ display: "flex", backgroundColor: "#E4AC80", minHeight: "100vh" }}>
       <CssBaseline />
@@ -154,4 +154,4 @@ const OrphanageDashboard = () => {
   );
 };
 
-export default OrphanageDashboard;
+export default orphanageDashboard;

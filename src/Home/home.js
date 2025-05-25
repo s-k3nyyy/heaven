@@ -8,17 +8,18 @@ import {
   Avatar,
   Toolbar, 
   CssBaseline,
+  CircularProgress,
 } from '@mui/material';
-// Import Icons
+// Icons
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import CardGiftcardIcon from '@mui/icons-material/CardGiftcard';
 import ChildCareIcon from '@mui/icons-material/ChildCare';
 import SettingsIcon from '@mui/icons-material/Settings';
 import ExploreIcon from '@mui/icons-material/Explore';
 import AssessmentIcon from '@mui/icons-material/Assessment';
-import { useUser } from '@clerk/clerk-react';
-
 import FavoriteIcon from '@mui/icons-material/Favorite';
+
+import { useUser } from '@clerk/clerk-react';
 
 const navLinks = [
   { text: 'Dashboard', path: '/', icon: <DashboardIcon /> },
@@ -31,40 +32,54 @@ const navLinks = [
 
 const Home = () => {
   const [activeItem, setActiveItem] = useState('/');
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
 
-  const handleNavClick = (path) => {
-    setActiveItem(path);
-  };
+  if (!isLoaded) {
+    // User data still loading, show spinner
+    return (
+      <Box 
+        sx={{ 
+          height: '100vh', 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center' 
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
 
+  if (!user) {
+    // User not logged in or no user object
+    return (
+      <Box sx={{ p: 4, textAlign: 'center' }}>
+        <Typography variant="h6" color="error">
+          User not found. Please log in.
+        </Typography>
+      </Box>
+    );
+  }
+
+  // User is loaded and valid - safe to render UI
   return (
     <Box sx={{ display: 'flex', justifyContent: 'center', backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
       <CssBaseline />
-      
-      {/* Main Content */}
-      <Box component="main" sx={{ 
-        maxWidth: '900px', 
-        width: '100%', 
-        p: 3, 
-        backgroundColor: '#f5f5f5',
-        mx: 'auto' // margin auto for horizontal centering
-      }}>
+      <Box 
+        component="main" 
+        sx={{ maxWidth: 900, width: '100%', p: 3, backgroundColor: '#f5f5f5', mx: 'auto' }}
+      >
         <Toolbar />
-        
-        {/* Avatar Section at Top */}
+
+        {/* Avatar Section */}
         <Card sx={{ mb: 4, backgroundColor: '#DEA385', borderRadius: 2 }}>
           <CardContent>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Avatar 
-                sx={{ 
-                  width: 80, 
-                  height: 80, 
-                  backgroundColor: '#4A573A',
-                  border: '3px solid #C4B1CF'
-                }}
+              <Avatar
+                sx={{ width: 80, height: 80, backgroundColor: '#4A573A', border: '3px solid #C4B1CF' }}
               >
-                {user.firstName.charAt(0).toUpperCase()}
-                {user.lastName.charAt(0).toUpperCase()}
+                {user.firstName?.charAt(0).toUpperCase() || ''}
+                {user.lastName?.charAt(0).toUpperCase() || ''}
               </Avatar>
               <Box sx={{ ml: 3 }}>
                 <Typography variant="h6" fontWeight="bold" sx={{ color: '#4A573A' }}>
@@ -80,43 +95,61 @@ const Home = () => {
             </Box>
           </CardContent>
         </Card>
-        
-        <Typography variant="h5" fontWeight="bold" mb={2} sx={{ color: '#4A573A' }}>Dashboard Overview</Typography>
+
+        <Typography variant="h5" fontWeight="bold" mb={2} sx={{ color: '#4A573A' }}>
+          Dashboard Overview
+        </Typography>
 
         <Grid container spacing={2} mb={4}>
           <Grid item xs={12} md={4}>
             <Card sx={{ backgroundColor: '#DEA385', borderRadius: 2 }}>
               <CardContent>
-                <Typography variant="h6" sx={{ color: '#4A573A' }}>Total Donated</Typography>
-                <Typography variant="h5" fontWeight="bold" sx={{ color: '#4A573A' }}>KSh 10,000.00</Typography>
+                <Typography variant="h6" sx={{ color: '#4A573A' }}>
+                  Total Donated
+                </Typography>
+                <Typography variant="h5" fontWeight="bold" sx={{ color: '#4A573A' }}>
+                  KSh 10,000.00
+                </Typography>
               </CardContent>
             </Card>
           </Grid>
           <Grid item xs={12} md={4}>
             <Card sx={{ backgroundColor: '#DEA385', borderRadius: 2 }}>
               <CardContent>
-                <Typography variant="h6" sx={{ color: '#4A573A' }}>Total Donations</Typography>
-                <Typography variant="h5" fontWeight="bold" sx={{ color: '#4A573A' }}>3</Typography>
+                <Typography variant="h6" sx={{ color: '#4A573A' }}>
+                  Total Donations
+                </Typography>
+                <Typography variant="h5" fontWeight="bold" sx={{ color: '#4A573A' }}>
+                  3
+                </Typography>
               </CardContent>
             </Card>
           </Grid>
           <Grid item xs={12} md={4}>
             <Card sx={{ backgroundColor: '#DEA385', borderRadius: 2 }}>
               <CardContent>
-                <Typography variant="h6" sx={{ color: '#4A573A' }}>Kids Sponsoring</Typography>
-                <Typography variant="h5" fontWeight="bold" sx={{ color: '#4A573A' }}>1</Typography>
+                <Typography variant="h6" sx={{ color: '#4A573A' }}>
+                  Kids Sponsoring
+                </Typography>
+                <Typography variant="h5" fontWeight="bold" sx={{ color: '#4A573A' }}>
+                  1
+                </Typography>
               </CardContent>
             </Card>
           </Grid>
         </Grid>
 
         {/* Recent Donations */}
-        <Typography variant="h6" fontWeight="bold" mb={1} sx={{ color: '#4A573A' }}>Recent Donations</Typography>
+        <Typography variant="h6" fontWeight="bold" mb={1} sx={{ color: '#4A573A' }}>
+          Recent Donations
+        </Typography>
         {[3000, 900, 6100].map((amount, i) => (
           <Card key={i} sx={{ mb: 2, backgroundColor: '#DEA385', borderRadius: 2 }}>
             <CardContent sx={{ display: 'flex', justifyContent: 'space-between' }}>
               <Box>
-                <Typography fontWeight="bold" sx={{ color: '#4A573A' }}>💰 Food for Hope orphanage</Typography>
+                <Typography fontWeight="bold" sx={{ color: '#4A573A' }}>
+                  💰 Food for Hope orphanage
+                </Typography>
                 <Typography variant="body2" sx={{ color: '#4A573A' }}>
                   Donated KSh {amount.toLocaleString()}.00 on May 05, 2025
                 </Typography>

@@ -1,49 +1,37 @@
 import '../App.css';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import Box from '@mui/material/Box';
-import TextField from '@mui/material/TextField';
-import IconButton from '@mui/material/IconButton';
-import OutlinedInput from '@mui/material/OutlinedInput';
-import InputLabel from '@mui/material/InputLabel';
-import InputAdornment from '@mui/material/InputAdornment';
-import FormControl from '@mui/material/FormControl';
-import Visibility from '@mui/icons-material/Visibility';
-import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import Button from '@mui/material/Button';
-import ToggleButton from '@mui/material/ToggleButton';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import {
+  Box,
+  TextField,
+  IconButton,
+  OutlinedInput,
+  InputLabel,
+  InputAdornment,
+  FormControl,
+  Button
+} from '@mui/material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useSignIn } from '@clerk/clerk-react';
 
 function LogIn() {
   const { signIn, isLoaded } = useSignIn();
-  const [error, setError] = useState();
-  const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [userRole, setUserRole] = useState('donor'); // Default role
   const navigate = useNavigate();
 
-  const handleClickShowPassword = () => setShowPassword((show) => !show);
-  const handleMouseDownPassword = (event) => { event.preventDefault(); };
-  const handleMouseUpPassword = (event) => { event.preventDefault(); };
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
-  const handleRoleChange = (event, newRole) => {
-    if (newRole !== null) {
-      setUserRole(newRole);
-    }
-  };
+  const handleClickShowPassword = () => setShowPassword((show) => !show);
+  const handleMouseDownPassword = (event) => event.preventDefault();
 
   const handleLogin = async (event) => {
     event.preventDefault();
+    setError('');
 
-    if (!email) {
-      setError("Please enter your email.");
-      return;
-    }
-
-    if (!password) {
-      setError("Please enter your password.");
+    if (!email || !password) {
+      setError("Please enter your email and password.");
       return;
     }
 
@@ -51,29 +39,48 @@ function LogIn() {
       const signInAttempt = await signIn.create({ identifier: email });
 
       const result = await signInAttempt.attemptFirstFactor({
-        strategy: "password",
-        password: password,
+        strategy: 'password',
+        password,
       });
 
-      if (result.status === "complete") {
-        // Redirect based on role
-        /*   if (userRole === 'donor') { */
-            window.location.href='/home';
-        /*   } else {
-            navigate('/OrphanageDashboard');
+      if (result.status === 'complete') {
+        const res = await fetch('http://localhost:5000/api/userrole', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ email }),
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          if (data.role === 'donor') {
+            console.log("✅ Donor logged in");
+            navigate('/home');
+          } else if (data.role === 'admin') {
+            console.log("✅ Admin logged in");
+            navigate('/opharnagedashboard');
+          } else {
+            setError("Unknown user role.");
           }
-         */
+        } else {
+          setError(data.message || "Unable to determine user role.");
+        }
       } else {
         setError("Invalid credentials. Please try again.");
       }
-   } catch (err) {
-  console.error("Clerk error:", err);
-  if (err.errors && err.errors.length > 0) {
-    setError(err.errors[0].message); // Short message (like "Invalid password.")
-  } else {
-    setError("Unexpected error. Please try again.");
-  }
-}
+    } catch (err) {
+      console.error("Login error:", err);
+      setError(err?.errors?.[0]?.message || "Unexpected error. Please try again.");
+    }
+  };
+
+  const handleGoogleLogin = () => {
+    signIn.authenticateWithRedirect({
+      strategy: "oauth_google",
+      redirectUrl: '/home' // Your backend should handle role-based redirect
+    });
+    setError("Redirecting to Google login...");
   };
 
   if (!isLoaded) return null;
@@ -81,24 +88,11 @@ function LogIn() {
   return (
     <div className="signup">
       <div className="signup-image">
-        <img alt="Log in pic" src="/signupimage.jpg" />
+        <img alt="Log in" src="/signupimage.jpg" />
       </div>
 
       <div className="signup-form">
         <h1>Welcome back! 👋</h1>
-
-        {/* Toggle Button for User Role Selection */}
-        <ToggleButtonGroup
-          color="primary"
-          value={userRole}
-          exclusive
-          onChange={handleRoleChange}
-          aria-label="User Role"
-          sx={{ mb: 2 }}
-        >
-          <ToggleButton value="donor">Donor</ToggleButton>
-          <ToggleButton value="orphanage">Orphanage</ToggleButton>
-        </ToggleButtonGroup>
 
         <Box
           component="form"
@@ -107,7 +101,7 @@ function LogIn() {
           autoComplete="off"
         >
           <TextField
-            label={userRole === 'donor' ? "Email" : "Orphanage Email"}
+            label="Email"
             variant="outlined"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -123,10 +117,9 @@ function LogIn() {
               endAdornment={
                 <InputAdornment position="end">
                   <IconButton
-                    aria-label={showPassword ? 'hide password' : 'show password'}
+                    aria-label="toggle password visibility"
                     onClick={handleClickShowPassword}
                     onMouseDown={handleMouseDownPassword}
-                    onMouseUp={handleMouseUpPassword}
                     edge="end"
                   >
                     {showPassword ? <VisibilityOff /> : <Visibility />}
@@ -137,18 +130,23 @@ function LogIn() {
             />
           </FormControl>
 
-          {error && <div style={{ color: 'red', marginLeft: 8 }}>{error}</div>}
+          {error && (
+            <div style={{ color: 'red', marginLeft: 8, fontSize: '0.9rem' }}>
+              {error}
+            </div>
+          )}
 
-          <Button variant="contained" type="submit">
-            Log in as {userRole === 'donor' ? "Donor" : "Orphanage"}
+          <Button variant="contained" type="submit" fullWidth>
+            Log in
           </Button>
 
-          <Button variant="contained" onClick={() => {signIn.authenticateWithRedirect({ strategy: "oauth_google", redirectUrl: "/home", }); setError("Redirecting to Google login...");}}
-            >Log in with Google</Button>
+          <Button variant="outlined" onClick={handleGoogleLogin} fullWidth>
+            Log in with Google
+          </Button>
         </Box>
 
         <span style={{ display: 'block', marginTop: '10px' }}>
-          Don’t have an account?{' '}
+          Don't have an account?{' '}
           <Link to="/signup" style={{ color: '#000000', textDecoration: 'none' }}>
             Sign up
           </Link>

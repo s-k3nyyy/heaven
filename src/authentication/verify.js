@@ -6,7 +6,7 @@ import { Input as BaseInput } from '@mui/base/Input';
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import { styled } from "@mui/system";
-import Alert from "@mui/material/Alert";  
+import Alert from "@mui/material/Alert";
 
 const InputElement = styled('input')(
     () => `
@@ -177,12 +177,9 @@ function OTP({ separator, length, value, onChange }) {
   };
 
 function Verify() {
-  const { signUp, setActive ,isLoaded } = useSignUp();
+  const { signUp, setActive, isLoaded } = useSignUp();
   const [otp, setOtp] = useState("");
   const [error, setError] = useState(null);
- 
-
-
 
   const handleVerify = async (event) => {
     event.preventDefault();
@@ -192,7 +189,7 @@ function Verify() {
       return;
     }
     if (!otp.trim()) {
-      setError("Please enter the otp.");
+      setError("Please enter the OTP.");
       return false;
     }
 
@@ -201,9 +198,22 @@ function Verify() {
 
         if (result.status === "complete") {
             await setActive({ session: result.createdSessionId });
+            
+            // Get the user role from sessionStorage
+            const userRole = sessionStorage.getItem('userRole') || 'donor';
+            
+            // Clear the stored role
+            sessionStorage.removeItem('userRole');
+            
             setError("Sign up successful! Redirecting...");
+            
             setTimeout(() => {
-                window.location.href = "/home";
+                // Redirect based on role
+                if (userRole === 'donor') {
+                    window.location.href = "/home";
+                } else {
+                    window.location.href = "/orphanageDashboard";
+                }
             }, 1500);
         } else {
             setError("Invalid OTP. Please try again.");
@@ -212,9 +222,7 @@ function Verify() {
       const errorMessage = err.errors[0]?.message || "Verification failed. Please try again.";
         setError(errorMessage);
     } 
-};
-
-
+  };
   return (
     <div className="signup">
       <div className="signup-image">

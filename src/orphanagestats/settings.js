@@ -18,10 +18,31 @@ function Settings() {
     }
   };
 
-  const handleLogout = () => {
-    // Logout logic here (e.g., clear tokens, redirect, etc.)
-    alert('Logged out successfully.');
+  const handleLogout = async () => {
+    try {
+      // Optional: Notify backend
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        await fetch('/api/logout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      }
+  
+      // Clear local data
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('user');
+  
+      // Redirect
+      window.location.href = '/login';
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
   };
+  
 
   return (
     <Box
@@ -85,7 +106,7 @@ function Settings() {
           color="error"
           onClick={handleLogout}
         >
-          Log Out
+          Log Outttt
         </Button>
       </Container>
     </Box>

@@ -72,7 +72,7 @@ const Adminsidenav = ({isSidebarOpen, setIsSidebarOpen}) => {
   };
 
   const navigationItems = [
-    { text: "Dashboard", icon: <Dashboard sx={{ color: "black" }} />, path: "/OrphanageDashboard" },
+    { text: "Dashboard", icon: <Dashboard sx={{ color: "black" }} />, path: "/orphanageDashboard" },
     { text: "Donations", icon: <MonetizationOn sx={{ color: "black" }} />, path: "/admin-donations" },
     { text: "Sponsorships", icon: <People sx={{ color: "black" }} />, path: "/sponsorshipspage" },
     { text: "Reports", icon: <BarChart sx={{ color: "black" }} />, path: "/reports" },
