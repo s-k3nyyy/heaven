@@ -27,14 +27,25 @@ app.get('/health', (req, res) => {
     });
 });
 
-// Load ONLY the webhook routes (these work fine)
+// Load webhook routes
 console.log('Loading webhook routes...');
 const donorWebhook = require('./userroutes/donorwebhook');
 const adminWebhook = require('./userroutes/adminwebhook');
 const userRoleRoute = require('./userroutes/userRole');
+
+// Load API routes
+const sponsorshipsRoutes = require('./routes/sponsorships');
+const donorsRoutes = require('./routes/donors');
+
+// Register webhook routes
 app.use('/webhook/donors', donorWebhook);
 app.use('/webhook/admins', adminWebhook);
 console.log('✅ Webhook routes loaded successfully');
+
+// Register working API routes
+app.use('/api/userrole', userRoleRoute);
+app.use('/api/sponsorships', sponsorshipsRoutes);
+app.use('/api/donors', donorsRoutes);
 
 // Temporary message for other API endpoints
 const tempHandler = (routeName) => (req, res) => {
@@ -43,10 +54,10 @@ const tempHandler = (routeName) => (req, res) => {
         note: 'Signup functionality is working fine!'
     });
 };
-app.use('/api/userrole', userRoleRoute);
+
+// Register temporary handlers for other routes
 app.use('/api/donations', tempHandler('Donations'));
 app.use('/api/children', tempHandler('Children'));
-app.use('/api/sponsorships', tempHandler('Sponsorships'));
 app.use('/api/needs', tempHandler('Needs'));
 app.use('/api/reports', tempHandler('Reports'));
 app.use('/api/successstories', tempHandler('Success Stories'));
@@ -67,5 +78,5 @@ app.listen(port, () => {
     console.log(`🚀 Server running on http://localhost:${port}`);
     console.log(`📊 Health check: http://localhost:${port}/health`);
     console.log('✅ Signup functionality is ready!');
-    console.log('⚠️  Other API routes temporarily disabled');
+    console.log('✅ Sponsorships and Donors API routes are active!');
 });
