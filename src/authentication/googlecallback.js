@@ -125,8 +125,8 @@ const GoogleCallback = () => {
             console.log('Redirecting to /home');
             navigate('/home', { replace: true });
           } else if (userRole === 'admin') {
-            console.log('Redirecting to /opharnagedashboard');
-            navigate('/opharnagedashboard', { replace: true });
+            console.log('Redirecting to /orphanageDashboard');
+            navigate('/orphanageDashboard', { replace: true });
           } else {
             console.error('Unknown user role:', userRole);
             navigate('/login', { replace: true });

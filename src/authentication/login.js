@@ -59,7 +59,7 @@ function LogIn() {
             navigate('/home');
           } else if (data.role === 'admin') {
             console.log("✅ Admin logged in");
-            navigate('/opharnagedashboard');
+            navigate('/orphanageDashboard');
           } else {
             setError("Unknown user role.");
           }
