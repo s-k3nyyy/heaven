@@ -1,146 +1,193 @@
 import '../App.css';
-import React, { useState } from "react";
-import { Routes, Route, Link, Navigate, useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 import {
   Box, CssBaseline, Typography, Grid, Card, CardContent,
-  Button, TextField, Avatar
+  Avatar
 } from "@mui/material";
-import { useUser } from '@clerk/clerk-react'; // Add this import
 
-// Page components
 const DashboardPage = () => {
-  const { user } = useUser(); // Add this hook
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+      }
+    }
+  }, []);
+
+  const getUserInitials = () => {
+    if (!user || !user.name) return 'AD';
+    const nameParts = user.name.trim().split(' ');
+    if (nameParts.length === 1) {
+      return nameParts[0].substring(0, 2).toUpperCase();
+    } else {
+      return (
+        nameParts[0].charAt(0).toUpperCase() +
+        nameParts[nameParts.length - 1].charAt(0).toUpperCase()
+      );
+    }
+  };
+
+  const getUserFullName = () => user?.name || 'Admin User';
+  const getUserFirstName = () => (user?.name ? user.name.trim().split(' ')[0] : 'Admin');
+
+  const getJoinDate = () => {
+    if (!user?.created_at) return 'January 2025';
+    try {
+      const date = new Date(user.created_at);
+      return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+    } catch {
+      return 'January 2025';
+    }
+  };
 
   return (
     <>
-      {/* Add Avatar Section at Top - similar to donor dashboard */}
-      <Card sx={{ mb: 4, backgroundColor: '#DEA385', borderRadius: 2 }}>
-        <CardContent>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Avatar 
-              sx={{ 
-                width: 80, 
-                height: 80, 
-                backgroundColor: '#4A573A',
-                border: '3px solid #C4B1CF'
-              }}
-            >
-              {user?.firstName?.charAt(0)?.toUpperCase() || 'A'}
-              {user?.lastName?.charAt(0)?.toUpperCase() || 'D'}
-            </Avatar>
-            <Box sx={{ ml: 3 }}>
-              <Typography variant="h6" fontWeight="bold" sx={{ color: '#4A573A' }}>
-                {user?.firstName || 'Admin'} {user?.lastName || 'User'}
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#4A573A' }}>
-                Administrator Dashboard - Managing since January 2025
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#4A573A', mt: 1 }}>
-                Overseeing operations and making a difference
-              </Typography>
-            </Box>
-          </Box>
-        </CardContent>
+      {/* Avatar & Info Section */}
+      <Card
+        sx={{
+          mb: 5,
+          p: 3,
+          borderRadius: 3,
+          background: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
+          boxShadow: '0 8px 20px rgba(252, 182, 159, 0.4)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 3,
+          maxWidth: 600,
+          mx: 'auto',
+        }}
+      >
+        <Avatar
+          sx={{
+            width: 90,
+            height: 90,
+            bgcolor: '#7f5539',
+            fontSize: '2.5rem',
+            fontWeight: 'bold',
+            boxShadow: '0 0 12px rgba(127, 85, 57, 0.7)',
+            border: '3px solid #fff',
+          }}
+        >
+          {getUserInitials()}
+        </Avatar>
+
+        <Box>
+          <Typography variant="h5" fontWeight="700" sx={{ color: '#7f5539' }}>
+            {getUserFullName()}
+          </Typography>
+          <Typography variant="subtitle1" sx={{ color: '#7f5539', mb: 0.5 }}>
+            Admin — Managing since {getJoinDate()}
+          </Typography>
+          <Typography
+            variant="body2"
+            sx={{ color: '#6b4a2a', fontStyle: 'italic', mb: 1 }}
+          >
+            Overseeing operations and making a difference
+          </Typography>
+          {user?.email && (
+            <Typography variant="body2" sx={{ color: '#7f5539', fontWeight: '500' }}>
+              {user.email}
+            </Typography>
+          )}
+        </Box>
       </Card>
 
-      <Typography variant="h4">Welcome back 👋🏾 </Typography>
-      <Typography variant="body1">Manage donations, sponsorships, and more.</Typography>
-      
+      {/* Greeting Section */}
+      <Box sx={{ textAlign: 'center', mb: 5 }}>
+        <Typography variant="h3" fontWeight="bold" sx={{ color: '#4a342e' }}>
+          Welcome back, {getUserFirstName()}! 👋🏾
+        </Typography>
+        <Typography variant="h6" sx={{ color: '#7f5539', mt: 1 }}>
+          Manage donations, sponsorships, and more.
+        </Typography>
+      </Box>
+
       {/* Overview Cards */}
-      <Grid container spacing={3} sx={{ mt: 3 }}>
-        {["Total Donations", "Total Sponsorships", "Messages Received", "Reports Generated"].map((title, index) => (
-          <Grid item xs={12} sm={6} md={3} key={index}>
-            <Card sx={{ 
-              backgroundColor: "#000000", 
-              color: "#000000",
-              boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)"
-            }}>
-              <CardContent sx={{ backgroundColor: "#FFFFFF" }}>
-                <Typography variant="h6" sx={{ color: "#000000" }}>{title}</Typography>
-                <Typography variant="h4" sx={{ color: "#000000" }}>
-                  {index === 0 ? "429" : index === 1 ? "852" : index === 2 ? "387" : "304"}
-                </Typography>
-              </CardContent>
+      <Grid container spacing={4} justifyContent="center" sx={{ px: 2 }}>
+        {[ 'Donations', 'Sponsorships' , 'Reports' ].map((title, idx) => (
+          <Grid item xs={12} sm={6} md={3} key={idx}>
+            <Card
+              sx={{
+                backgroundColor: '#fff',
+                borderRadius: 3,
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                transition: 'transform 0.2s ease-in-out',
+                '&:hover': {
+                  transform: 'translateY(-6px)',
+                  boxShadow: '0 8px 20px rgba(0,0,0,0.15)',
+                },
+                height: 150,
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <Typography variant="h6" fontWeight="600" color="#7f5539">
+                {title}
+              </Typography>
             </Card>
           </Grid>
         ))}
       </Grid>
-      
-      {/* Messaging System */}
-      <Box sx={{ mt: 4 }}>
-        <Typography variant="h5">Send a Message</Typography>
-        <TextField fullWidth label="Message" multiline rows={4} sx={{ my: 2 }} />
-        <Button
-          variant="contained"
-          sx={{
-            backgroundColor: "#9AA27D",
-            '&:hover': { backgroundColor: "#8c9b6f" }
-          }}
-        >
-          Send
-        </Button>
-      </Box>
     </>
   );
 };
 
-const DonationsPage = () => {
-  return (
-    <div>
-      <Typography variant="h4">Donations</Typography>
-      <Typography variant="body1">Manage all donations and financial contributions.</Typography>
-      {/* Additional donations content would go here */}
-    </div>
-  );
-};
+const DonationsPage = () => (
+  <Box sx={{ maxWidth: 900, mx: 'auto', p: 3 }}>
+    <Typography variant="h4" gutterBottom>Donations</Typography>
+    <Typography>Manage all donations and financial contributions.</Typography>
+  </Box>
+);
 
-const SponsorshipsPage = () => {
-  return (
-    <div>
-      <Typography variant="h4">Sponsorships</Typography>
-      <Typography variant="body1">Manage sponsor relationships and programs.</Typography>
-      {/* Additional sponsorships content would go here */}
-    </div>
-  );
-};
+const SponsorshipsPage = () => (
+  <Box sx={{ maxWidth: 900, mx: 'auto', p: 3 }}>
+    <Typography variant="h4" gutterBottom>Sponsorships</Typography>
+    <Typography>Manage sponsor relationships and programs.</Typography>
+  </Box>
+);
 
-const EmailPage = () => {
-  return (
-    <div>
-      <Typography variant="h4">Email Management</Typography>
-      <Typography variant="body1">View and send emails to contacts.</Typography>
-      {/* Additional email content would go here */}
-    </div>
-  );
-};
+const EmailPage = () => (
+  <Box sx={{ maxWidth: 900, mx: 'auto', p: 3 }}>
+    <Typography variant="h4" gutterBottom>Email Management</Typography>
+    <Typography>View and send emails to contacts.</Typography>
+  </Box>
+);
 
-const ReportsPage = () => {
-  return (
-    <div>
-      <Typography variant="h4">Reports</Typography>
-      <Typography variant="body1">Generate and view financial and activity reports.</Typography>
-      {/* Additional reports content would go here */}
-    </div>
-  );
-};
+const ReportsPage = () => (
+  <Box sx={{ maxWidth: 900, mx: 'auto', p: 3 }}>
+    <Typography variant="h4" gutterBottom>Reports</Typography>
+    <Typography>Generate and view financial and activity reports.</Typography>
+  </Box>
+);
 
-const SettingsPage = () => {
-  return (
-    <div>
-      <Typography variant="h4">Settings</Typography>
-      <Typography variant="body1">Customize your dashboard experience.</Typography>
-      {/* Additional settings content would go here */}
-    </div>
-  );
-};
+const SettingsPage = () => (
+  <Box sx={{ maxWidth: 900, mx: 'auto', p: 3 }}>
+    <Typography variant="h4" gutterBottom>Settings</Typography>
+    <Typography>Customize your dashboard experience.</Typography>
+  </Box>
+);
 
-const orphanageDashboard = () => {
+const OrphanageDashboard = () => {
   return (
-    <Box sx={{ display: "flex", backgroundColor: "#E4AC80", minHeight: "100vh" }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        backgroundColor: "#FFF7F0",
+        minHeight: "100vh",
+        pb: 5,
+      }}
+    >
       <CssBaseline />
-    
-      {/* Main Content Area */}
-      <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
+      <Box component="main" sx={{ flexGrow: 1, p: { xs: 2, md: 4 }, mt: 10 }}>
         <Routes>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/sponsorshipspage" element={<SponsorshipsPage />} />
@@ -154,4 +201,4 @@ const orphanageDashboard = () => {
   );
 };
 
-export default orphanageDashboard;
+export default OrphanageDashboard;

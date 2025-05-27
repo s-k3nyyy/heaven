@@ -1,183 +1,163 @@
-import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Chip,
-  CircularProgress,
-  Alert,
-  Button,
-} from "@mui/material";
-import { Refresh } from "@mui/icons-material";
-
-const drawerWidth = 240;
-
-const getStatusChipColor = (status) => {
-  switch (status) {
-    case "Active":
-      return "success";
-    case "Pending":
-      return "warning";
-    case "Completed":
-      return "default";
-    default:
-      return "default";
-  }
-};
-
-const formatAmount = (amount, duration) => {
-  if (duration === 'One-time') {
-    return `$${amount} (One-time)`;
-  }
-  return `$${amount}/${duration.toLowerCase()}`;
-};
-
-const formatDuration = (startDate, endDate, duration) => {
-  const start = new Date(startDate).toLocaleDateString();
-  const end = new Date(endDate).toLocaleDateString();
-  
-  if (duration === 'One-time') {
-    return start;
-  }
-  
-  return `${start} - ${end}`;
-};
+import React, { useEffect, useState } from 'react';
+import { Container, Typography, Card, CardContent, CircularProgress, Grid, Box } from '@mui/material';
+import axios from 'axios';
 
 const SponsorshipsPage = () => {
   const [sponsorships, setSponsorships] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  const fetchSponsorships = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/sponsorships');
-      
-      // Check if response is HTML (error page)
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        throw new Error('Server returned HTML instead of JSON. Check if API routes are properly configured.');
-      }
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: Failed to fetch sponsorships`);
-      }
-      
-      const data = await response.json();
-      setSponsorships(data);
-      setError("");
-    } catch (err) {
-      console.error('Error fetching sponsorships:', err);
-      if (err.message.includes('HTML')) {
-        setError("API routes not configured. Please ensure your server has the sponsorships routes set up.");
-      } else {
-        setError(`Failed to load sponsorships: ${err.message}`);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [error, setError] = useState(null);
 
   useEffect(() => {
+    const fetchSponsorships = async () => {
+      try {
+        const res = await axios.get('http://localhost:5000/api/sponsorshipsForm');
+        setSponsorships(res.data);
+      } catch (err) {
+        setError(err.response?.data?.message || 'Failed to load sponsorships');
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchSponsorships();
   }, []);
 
-  const handleRefresh = () => {
-    fetchSponsorships();
-  };
+  if (loading)
+    return (
+      <Container sx={{ mt: 40, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <CircularProgress color="primary" size={60} />
+        <Typography variant="h6" sx={{ mt: 3, color: 'text.secondary', fontWeight: 500 }}>
+          Loading all sponsorships...
+        </Typography>
+      </Container>
+    );
+
+  if (error)
+    return (
+      <Container sx={{ mt: 10, textAlign: 'center' }}>
+        <Typography variant="h6" color="error" fontWeight="bold">
+          {error}
+        </Typography>
+      </Container>
+    );
 
   return (
-    <Box sx={{ marginLeft: `${drawerWidth}px`, padding: 4 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h4" gutterBottom>
-          Sponsorships
+    <Container sx={{ mt: 8, mb: 8, maxWidth: 'md' }}>
+      <Typography
+        variant="h3"
+        gutterBottom
+        align="center"
+        sx={{ fontWeight: 'bold', color: 'primary.main', mb: 6 }}
+      >
+        All Sponsorship Intents
+      </Typography>
+
+      {sponsorships.length === 0 ? (
+        <Typography variant="h6" align="center" color="text.secondary" sx={{ mt: 4 }}>
+          No sponsorship intents found.
         </Typography>
-        <Button
-          variant="outlined"
-          startIcon={<Refresh />}
-          onClick={handleRefresh}
-          disabled={loading}
-        >
-          Refresh
-        </Button>
-      </Box>
-
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      )}
-
-      {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-          <CircularProgress />
-        </Box>
       ) : (
-        <TableContainer
-          component={Paper}
-          elevation={3}
-          sx={{ mt: 4, borderRadius: 2 }}
-        >
-          <Table>
-            <TableHead sx={{ backgroundColor: "#C4B1CF" }}>
-              <TableRow>
-                <TableCell sx={{ fontWeight: "bold", fontSize: "1rem" }}>Child</TableCell>
-                <TableCell sx={{ fontWeight: "bold", fontSize: "1rem" }}>Sponsor</TableCell>
-                <TableCell sx={{ fontWeight: "bold", fontSize: "1rem" }}>Amount</TableCell>
-                <TableCell sx={{ fontWeight: "bold", fontSize: "1rem" }}>Type</TableCell>
-                <TableCell sx={{ fontWeight: "bold", fontSize: "1rem" }}>Duration</TableCell>
-                <TableCell sx={{ fontWeight: "bold", fontSize: "1rem" }}>Status</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {sponsorships.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} sx={{ textAlign: 'center', py: 4 }}>
-                    <Typography variant="body1" color="textSecondary">
-                      No sponsorships found. Submit a sponsorship form to see data here.
+        <Grid container spacing={5}>
+          {sponsorships.map((item, idx) => (
+            <Grid item xs={12} md={6} key={idx}>
+              <Card
+                variant="outlined"
+                sx={{
+                  boxShadow: 4,
+                  borderRadius: 3,
+                  transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                  '&:hover': {
+                    transform: 'scale(1.04)',
+                    boxShadow: 8,
+                  },
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                <CardContent sx={{ flexGrow: 1 }}>
+                  <Typography
+                    variant="h5"
+                    gutterBottom
+                    sx={{ fontWeight: 'bold', color: 'primary.dark' }}
+                  >
+                    Sponsor: {item.sponsorName}
+                  </Typography>
+
+                  <Typography variant="body1" sx={{ mb: 1 }}>
+                    <Box component="span" fontWeight="medium" color="text.primary">
+                      Child Name:
+                    </Box>{' '}
+                    {item.childName}
+                  </Typography>
+
+                  <Typography variant="body1" sx={{ mb: 1 }}>
+                    <Box component="span" fontWeight="medium" color="text.primary">
+                      Email:
+                    </Box>{' '}
+                    {item.sponsorEmail}
+                  </Typography>
+
+                  <Typography variant="body1" sx={{ mb: 1 }}>
+                    <Box component="span" fontWeight="medium" color="text.primary">
+                      Phone:
+                    </Box>{' '}
+                    {item.sponsorPhone || 'N/A'}
+                  </Typography>
+
+                  <Typography variant="body1" sx={{ mb: 1 }}>
+                    <Box component="span" fontWeight="medium" color="text.primary">
+                      Amount:
+                    </Box>{' '}
+                    <Box component="span" color="success.main" fontWeight="bold">
+                      KES {parseFloat(item.sponsorshipAmount).toLocaleString()}
+                    </Box>
+                  </Typography>
+
+                  <Typography variant="body1" sx={{ mb: 1 }}>
+                    <Box component="span" fontWeight="medium" color="text.primary">
+                      Type:
+                    </Box>{' '}
+                    {item.sponsorshipType}
+                  </Typography>
+
+                  <Typography
+                    variant="body2"
+                    sx={{ mt: 2, fontStyle: 'italic', color: 'text.secondary' }}
+                  >
+                    <Box component="span" fontWeight="medium" color="text.primary">
+                      Reason:
+                    </Box>{' '}
+                    {item.reasonForSponsorship}
+                  </Typography>
+
+                  {item.additionalMessage && (
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        mt: 2,
+                        p: 2,
+                        bgcolor: 'background.paper',
+                        borderRadius: 2,
+                        fontStyle: 'italic',
+                        color: 'text.secondary',
+                        border: '1px solid',
+                        borderColor: 'divider',
+                      }}
+                    >
+                      <Box component="span" fontWeight="medium" color="text.primary">
+                        Additional Message:
+                      </Box>{' '}
+                      {item.additionalMessage}
                     </Typography>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                sponsorships.map((entry, index) => (
-                  <TableRow key={entry.sponsorship_id || index}>
-                    <TableCell sx={{ fontSize: "0.95rem" }}>
-                      {entry.child_name || 'Unknown Child'}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: "0.95rem" }}>
-                      {entry.sponsor_name || 'Unknown Sponsor'}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: "0.95rem" }}>
-                      {formatAmount(entry.amount, entry.duration)}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: "0.95rem" }}>
-                      {entry.sponsorship_type || 'N/A'}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: "0.95rem" }}>
-                      {formatDuration(entry.start_date, entry.end_date, entry.duration)}
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={entry.status}
-                        color={getStatusChipColor(entry.status)}
-                        size="small"
-                        sx={{ fontSize: "0.8rem" }}
-                      />
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                  )}
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
       )}
-    </Box>
+    </Container>
   );
 };
 

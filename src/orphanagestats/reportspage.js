@@ -1,60 +1,70 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import {
   Button, Dialog, DialogActions, DialogContent, DialogTitle,
   TextField, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Paper, Container
+  TableHead, TableRow, Paper, Container, CircularProgress
 } from '@mui/material';
 
 function Reports() {
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     date: '',
-    donorName: '',
+    donorName: '',  // Changed to camelCase to match schema
     amount: '',
     usage: '',
-    usageDate: '',
+    usageDate: '',  // Changed to camelCase to match schema
   });
+  
   const [reports, setReports] = useState([]);
 
-  // Dummy data on first load
+  const fetchReports = async () => {
+    try {
+      const res = await axios.get('http://localhost:5000/api/reports/');
+      setReports(res.data.reports || []);
+    } catch (err) {
+      console.error('Error fetching reports:', err);
+    }
+  };
+
   useEffect(() => {
-    const dummyReports = [
-      {
-        name: 'School Supplies',
-        date: '2025-04-01',
-        donorName: 'Alice Mwangi',
-        amount: 5000,
-        usage: 'Purchased books and pens',
-        usageDate: '2025-04-05'
-      },
-      {
-        name: 'Medical Aid',
-        date: '2025-03-20',
-        donorName: 'John Otieno',
-        amount: 3000,
-        usage: 'Bought medicine and bandages',
-        usageDate: '2025-03-22'
-      }
-    ];
-    setReports(dummyReports);
+    fetchReports();
   }, []);
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = () => {
-    setReports([...reports, formData]);
-    setOpen(false);
-    setFormData({
-      name: '',
-      date: '',
-      donorName: '',
-      amount: '',
-      usage: '',
-      usageDate: '',
-    });
+  const handleSubmit = async () => {
+    setLoading(true);
+    try {
+      const payload = {
+        name: formData.name,
+        date: formData.date,
+        donorName: formData.donorName,  // Fixed: use camelCase to match schema
+        amount: parseFloat(formData.amount),
+        usage: formData.usage,
+        usageDate: formData.usageDate,  // Fixed: use camelCase to match schema
+      };
+  
+      await axios.post('http://localhost:5000/api/reports/', payload);
+      await fetchReports(); // refresh list
+      setOpen(false);
+      setFormData({
+        name: '',
+        date: '',
+        donorName: '',  // Fixed: consistent camelCase
+        amount: '',
+        usage: '',
+        usageDate: '',  // Fixed: consistent camelCase
+      });
+    } catch (err) {
+      console.error('Error submitting report:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -67,16 +77,82 @@ function Reports() {
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogTitle>Add Report</DialogTitle>
         <DialogContent>
-          <TextField label="Name" fullWidth margin="normal" name="name" value={formData.name} onChange={handleInputChange} />
-          <TextField label="Date" type="date" fullWidth margin="normal" name="date" value={formData.date} onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
-          <TextField label="Donor's Name" fullWidth margin="normal" name="donorName" value={formData.donorName} onChange={handleInputChange} />
-          <TextField label="Amount" type="number" fullWidth margin="normal" name="amount" value={formData.amount} onChange={handleInputChange} />
-          <TextField label="How it was used" fullWidth margin="normal" name="usage" value={formData.usage} onChange={handleInputChange} />
-          <TextField label="When it was used" type="date" fullWidth margin="normal" name="usageDate" value={formData.usageDate} onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
+          <TextField 
+            label="Name" 
+            fullWidth 
+            margin="normal" 
+            name="name" 
+            value={formData.name} 
+            onChange={handleInputChange}
+            disabled={loading}
+          />
+          <TextField 
+            label="Date" 
+            type="date" 
+            fullWidth 
+            margin="normal" 
+            name="date" 
+            value={formData.date} 
+            onChange={handleInputChange} 
+            InputLabelProps={{ shrink: true }}
+            disabled={loading}
+          />
+          <TextField 
+            label="Donor's Name" 
+            fullWidth 
+            margin="normal" 
+            name="donorName"  // Fixed: changed from "donor_name" to "donorName"
+            value={formData.donorName} 
+            onChange={handleInputChange}
+            disabled={loading}
+          />
+          <TextField 
+            label="Amount" 
+            type="number" 
+            fullWidth 
+            margin="normal" 
+            name="amount" 
+            value={formData.amount} 
+            onChange={handleInputChange}
+            disabled={loading}
+          />
+          <TextField 
+            label="How it was used" 
+            fullWidth 
+            margin="normal" 
+            name="usage" 
+            value={formData.usage} 
+            onChange={handleInputChange}
+            disabled={loading}
+          />
+          <TextField 
+            label="When it was used" 
+            type="date" 
+            fullWidth 
+            margin="normal" 
+            name="usageDate"  // Fixed: changed from "usageDate" to match state
+            value={formData.usageDate} 
+            onChange={handleInputChange} 
+            InputLabelProps={{ shrink: true }}
+            disabled={loading}
+          />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpen(false)} color="primary">Cancel</Button>
-          <Button onClick={handleSubmit} color="primary">Submit</Button>
+          <Button 
+            onClick={() => setOpen(false)} 
+            color="primary"
+            disabled={loading}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleSubmit} 
+            color="primary"
+            disabled={loading}
+            startIcon={loading ? <CircularProgress size={20} /> : null}
+          >
+            {loading ? 'Submitting...' : 'Submit'}
+          </Button>
         </DialogActions>
       </Dialog>
 
@@ -95,13 +171,13 @@ function Reports() {
           </TableHead>
           <TableBody>
             {reports.map((report, index) => (
-              <TableRow key={index}>
+              <TableRow key={report.id || index}>  {/* Use report.id if available */}
                 <TableCell>{report.name}</TableCell>
                 <TableCell>{report.date}</TableCell>
-                <TableCell>{report.donorName}</TableCell>
+                <TableCell>{report.donorName}</TableCell>  {/* Fixed: use camelCase from API response */}
                 <TableCell>{report.amount}</TableCell>
                 <TableCell>{report.usage}</TableCell>
-                <TableCell>{report.usageDate}</TableCell>
+                <TableCell>{report.usageDate}</TableCell>  {/* Fixed: use camelCase from API response */}
               </TableRow>
             ))}
           </TableBody>
@@ -112,7 +188,3 @@ function Reports() {
 }
 
 export default Reports;
-
-
-
-

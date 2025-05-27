@@ -24,6 +24,7 @@ function SignUp () {
     const [lastname, setLastname] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [phone, setPhone] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState(null);
     const [userRole, setUserRole] = useState('donor'); // default role
@@ -44,98 +45,186 @@ function SignUp () {
       event.preventDefault();
     };
 
-    const handleSignUp = async (e) => {
-      e.preventDefault();
-      setIsSubmitting(true);
-    
-      if (!isLoaded) {
-        setError("Clerk is loading, please wait");
-        setIsSubmitting(false);
-        return;
-      }
-    
-      if (!firstname.trim()) {
-        setError("First Name is required.");
-        setIsSubmitting(false);
-        return;
-      }
-      if (!lastname.trim()) {
-        setError("Last Name is required.");
-        setIsSubmitting(false);
-        return;
-      }
-      if (!email.includes("@")) {
-        setError("Invalid email format.");
-        setIsSubmitting(false);
-        return;
-      }
-      if (password.length < 8) {
-        setError("Password must be at least 8 characters.");
-        setIsSubmitting(false);
-        return;
-      }
-    
-      try {
-        // Step 1: Sign up with Clerk
-        const result = await signUp.create({
-          firstName: firstname,
-          lastName: lastname,
-          emailAddress: email,
-          password,
-        });
-    
-        // Step 2: Attach metadata
-        await signUp.update({
-          publicMetadata: { role: userRole },
-        });
-    
-        const userId = result.id;
-    
-        // Step 3: Post to your own backend
-        const backendUrl = userRole === 'donor' 
-          ? 'http://localhost:5000/webhook/donors' 
-          : 'http://localhost:5000/webhook/admins';
-    
-        const body = {
-          [`${userRole}_id`]: userId, // will be donor_id or admin_id
-          email,
-          first_name: firstname,
-          last_name: lastname
-        };
-    
-        const res = await fetch(backendUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
-        });
-    
-        if (!res.ok) {
-          const errData = await res.json();
-          throw new Error(errData.message || 'Failed to register user in DB');
+    // Direct backend registration (alternative to Clerk)
+    const handleBackendSignUp = async (e) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        setError(null);
+
+        // Validation
+        if (!firstname.trim()) {
+            setError("First Name is required.");
+            setIsSubmitting(false);
+            return;
         }
-    
-        // Step 4: Save to localStorage for verify step
-        localStorage.setItem('signupData', JSON.stringify({
-          firstName: firstname,
-          lastName: lastname,
-          email,
-          role: userRole,
-          userId
-        }));
-    
-        // Step 5: Trigger verification
-        await signUp.prepareVerification({ strategy: "email_code" });
-    
-        // Step 6: Navigate to verify page
-        navigate("/verify");
-    
-      } catch (err) {
-        console.error("❌ Signup error:", err);
-        setError(err.message || "An unexpected error occurred during signup");
-        setIsSubmitting(false);
-      }
+        if (!lastname.trim()) {
+            setError("Last Name is required.");
+            setIsSubmitting(false);
+            return;
+        }
+        if (!email.includes("@")) {
+            setError("Invalid email format.");
+            setIsSubmitting(false);
+            return;
+        }
+        if (password.length < 8) {
+            setError("Password must be at least 8 characters.");
+            setIsSubmitting(false);
+            return;
+        }
+
+        try {
+            // Register user directly with your Flask backend
+            const response = await fetch('http://localhost:5000/api/auth/register ', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name: `${firstname} ${lastname}`,
+                    email: email,
+                    password: password,
+                    phone: phone || null,
+                    role: userRole
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                // Registration successful
+                console.log("✅ User registered successfully:", data);
+                
+                // Store user data if needed
+                localStorage.setItem('registrationSuccess', JSON.stringify({
+                    email: email,
+                    role: userRole,
+                    message: data.message
+                }));
+
+                // Navigate based on role
+                if (userRole === 'donor') {
+                    navigate('/login', { 
+                        state: { 
+                            message: 'Account created successfully! Please log in.',
+                            email: email 
+                        } 
+                    });
+                } else {
+                    navigate('/login', { 
+                        state: { 
+                            message: 'Admin account created successfully! Please log in.',
+                            email: email 
+                        } 
+                    });
+                }
+            } else {
+                // Registration failed
+                setError(data.error || 'Registration failed. Please try again.');
+            }
+        } catch (err) {
+            console.error("❌ Registration error:", err);
+            setError('Network error. Please check your connection and try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
-    
+
+    // Hybrid approach: Clerk + Backend
+    const handleClerkWithBackendSignUp = async (e) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        setError(null);
+
+        if (!isLoaded) {
+            setError("Clerk is loading, please wait");
+            setIsSubmitting(false);
+            return;
+        }
+
+        // Validation
+        if (!firstname.trim()) {
+            setError("First Name is required.");
+            setIsSubmitting(false);
+            return;
+        }
+        if (!lastname.trim()) {
+            setError("Last Name is required.");
+            setIsSubmitting(false);
+            return;
+        }
+        if (!email.includes("@")) {
+            setError("Invalid email format.");
+            setIsSubmitting(false);
+            return;
+        }
+        if (password.length < 8) {
+            setError("Password must be at least 8 characters.");
+            setIsSubmitting(false);
+            return;
+        }
+
+        try {
+            // Step 1: Register with your Flask backend first
+            const backendResponse = await fetch('http://localhost:5000/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name: `${firstname} ${lastname}`,
+                    email: email,
+                    password: password,
+                    phone: phone || null,
+                    role: userRole
+                })
+            });
+
+            const backendData = await backendResponse.json();
+
+            if (!backendResponse.ok) {
+                throw new Error(backendData.error || 'Backend registration failed');
+            }
+
+            // Step 2: Sign up with Clerk (optional, for additional features)
+            const clerkResult = await signUp.create({
+                firstName: firstname,
+                lastName: lastname,
+                emailAddress: email,
+                password,
+            });
+
+            // Step 3: Attach metadata to Clerk
+            await signUp.update({
+                publicMetadata: { 
+                    role: userRole,
+                    backendUserId: backendData.user?.id 
+                },
+            });
+
+            // Step 4: Save signup data
+            localStorage.setItem('signupData', JSON.stringify({
+                firstName: firstname,
+                lastName: lastname,
+                email,
+                role: userRole,
+                userId: clerkResult.id,
+                backendUserId: backendData.user?.id
+            }));
+
+            // Step 5: Trigger email verification (if using Clerk verification)
+            await signUp.prepareVerification({ strategy: "email_code" });
+
+            // Step 6: Navigate to verify page or directly to login
+            navigate("/verify");
+
+        } catch (err) {
+            console.error("❌ Signup error:", err);
+            setError(err.message || "An unexpected error occurred during signup");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     const handleGoogle = async () => {
         if (!isLoaded) {
@@ -185,23 +274,25 @@ function SignUp () {
                     sx={{ '& > :not(style)': { m: 1, width: '25ch' } }}
                     noValidate
                     autoComplete="off"
-                    onSubmit={handleSignUp}
+                    onSubmit={handleBackendSignUp} // Using direct backend registration
                 >
                     <TextField 
                         label="First Name" 
-                        type='name' 
+                        type='text' 
                         value={firstname} 
                         variant="outlined" 
                         onChange={(e) => setFirstname(e.target.value)}
                         disabled={isSubmitting}
+                        required
                     />
                     <TextField 
                         label="Last Name" 
-                        type='name' 
+                        type='text' 
                         value={lastname} 
                         variant="outlined" 
                         onChange={(e) => setLastname(e.target.value)}
                         disabled={isSubmitting}
+                        required
                     />
                     <TextField 
                         label="Email" 
@@ -210,7 +301,16 @@ function SignUp () {
                         variant="outlined" 
                         onChange={(e) => setEmail(e.target.value)}
                         disabled={isSubmitting}
+                        required
                     /> 
+                    <TextField 
+                        label="Phone (Optional)" 
+                        type='tel' 
+                        value={phone} 
+                        variant="outlined" 
+                        onChange={(e) => setPhone(e.target.value)}
+                        disabled={isSubmitting}
+                    />
                     <FormControl sx={{ m: 1, width: '25ch' }} variant="outlined">
                         <InputLabel htmlFor="outlined-adornment-password">Password</InputLabel>
                         <OutlinedInput
@@ -220,6 +320,7 @@ function SignUp () {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             disabled={isSubmitting}
+                            required
                             endAdornment={
                                 <InputAdornment position="end">
                                     <IconButton
@@ -240,13 +341,15 @@ function SignUp () {
                         type='submit' 
                         variant="contained"
                         disabled={isSubmitting}
+                        fullWidth
                     >
                         {isSubmitting ? 'Creating Account...' : 'Sign Up'}
                     </Button>
                     <Button 
-                        variant="contained" 
+                        variant="outlined" 
                         onClick={handleGoogle}
                         disabled={isSubmitting}
+                        fullWidth
                     >
                         Sign Up with Google
                     </Button>

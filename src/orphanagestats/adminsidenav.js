@@ -71,13 +71,15 @@ const Adminsidenav = ({isSidebarOpen, setIsSidebarOpen}) => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
-  const navigationItems = [
-    { text: "Dashboard", icon: <Dashboard sx={{ color: "black" }} />, path: "/orphanageDashboard" },
-    { text: "Donations", icon: <MonetizationOn sx={{ color: "black" }} />, path: "/admin-donations" },
-    { text: "Sponsorships", icon: <People sx={{ color: "black" }} />, path: "/sponsorshipspage" },
-    { text: "Reports", icon: <BarChart sx={{ color: "black" }} />, path: "/reports" },
-    { text: "Settings", icon: <Settings sx={{ color: "black" }} />, path: "/settings" }
-  ];
+const navigationItems = [
+  { text: "Dashboard", icon: <Dashboard sx={{ color: "black" }} />, path: "/orphanageDashboard" },
+  { text: "Donations", icon: <MonetizationOn sx={{ color: "black" }} />, path: "/admin-donations" },
+  { text: "Sponsorships", icon: <People sx={{ color: "black" }} />, path: "/sponsorshipspage" },
+  { text: "Sponsor a Child", icon: <People sx={{ color: "black" }} />, path: "/sponsor-a-child" },
+  { text: "Add Orphanage", icon: <People sx={{ color: "black" }} />, path: "/add-orphanage" }, // 👈 New item added here
+  { text: "Reports", icon: <BarChart sx={{ color: "black" }} />, path: "/reports" },
+  { text: "Settings", icon: <Settings sx={{ color: "black" }} />, path: "/settings" }
+];
 
   return (
     <Drawer variant="permanent" open={isSidebarOpen} sx={{
