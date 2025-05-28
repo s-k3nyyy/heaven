@@ -1,6 +1,8 @@
 services:
   - type: static
     name: heaven-static
+    env: node
+    buildCommand: npm run build
     staticPublishPath: build
     routes:
       - type: rewrite
