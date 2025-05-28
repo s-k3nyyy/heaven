@@ -45,7 +45,7 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const API_BASE_URL = 'http://localhost:5000/api';
+  const API_BASE_URL = 'https://ideal-sniffle-1y3k.onrender.com/api';
 
   // Get user data from localStorage
   const getUserData = () => {

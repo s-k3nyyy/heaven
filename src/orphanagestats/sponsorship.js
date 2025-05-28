@@ -10,7 +10,7 @@ const SponsorshipsPage = () => {
   useEffect(() => {
     const fetchSponsorships = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/sponsorshipsForm');
+        const res = await axios.get('https://ideal-sniffle-1y3k.onrender.com/api/sponsorshipsForm');
         setSponsorships(res.data);
       } catch (err) {
         setError(err.response?.data?.message || 'Failed to load sponsorships');

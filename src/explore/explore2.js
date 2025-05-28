@@ -12,7 +12,7 @@ const ExplorePage = () => {
   useEffect(() => {
     const fetchOrphanages = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/orphanages');
+        const res = await axios.get('https://ideal-sniffle-1y3k.onrender.com/api/orphanages');
         setOrphanages(res.data);
       } catch (err) {
         setError('Failed to load orphanages');

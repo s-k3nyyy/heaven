@@ -66,7 +66,7 @@ function LogIn() {
     try {
       console.log('🔄 Attempting login for:', email);
 
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch('https://ideal-sniffle-1y3k.onrender.com/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -156,7 +156,7 @@ function LogIn() {
       console.log('🔄 Attempting hybrid login for:', email);
 
       // Step 1: Login with backend first
-      const backendResponse = await fetch('http://localhost:5000/api/auth/login', {
+      const backendResponse = await fetch('https://ideal-sniffle-1y3k.onrender.com/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

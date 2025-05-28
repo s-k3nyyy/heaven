@@ -22,7 +22,7 @@ function Reports() {
 
   const fetchReports = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/reports/');
+      const res = await axios.get('https://ideal-sniffle-1y3k.onrender.com/api/reports/');
       setReports(res.data.reports || []);
     } catch (err) {
       console.error('Error fetching reports:', err);
@@ -49,7 +49,7 @@ function Reports() {
         usageDate: formData.usageDate,  // Fixed: use camelCase to match schema
       };
   
-      await axios.post('http://localhost:5000/api/reports/', payload);
+      await axios.post('https://ideal-sniffle-1y3k.onrender.com/api/reports/', payload);
       await fetchReports(); // refresh list
       setOpen(false);
       setFormData({

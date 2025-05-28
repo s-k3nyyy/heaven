@@ -48,7 +48,7 @@ const SponsorChildList = () => {
   useEffect(() => {
     const fetchChildren = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/sponsor-child');
+        const response = await axios.get('https://ideal-sniffle-1y3k.onrender.com/api/sponsor-child');
         if (Array.isArray(response.data)) {
           setChildren(response.data);
         } else {
@@ -75,7 +75,7 @@ const SponsorChildList = () => {
   const getImageUrl = (url) => {
     if (!url) return '/placeholder-child.jpg';
     if (url.startsWith('http://') || url.startsWith('https://')) return url;
-    return `http://localhost:5000/${url}`;
+    return `https://ideal-sniffle-1y3k.onrender.com/${url}`;
   };
 
   const handleSponsorClick = (child) => {
@@ -125,7 +125,7 @@ const SponsorChildList = () => {
         sponsorshipAmount: parseFloat(sponsorForm.sponsorshipAmount)
       };
 
-      await axios.post('http://localhost:5000/api/sponsorshipsForm', sponsorshipData);
+      await axios.post('https://ideal-sniffle-1y3k.onrender.com/api/sponsorshipsForm', sponsorshipData);
 
       setSnackbar({
         open: true,

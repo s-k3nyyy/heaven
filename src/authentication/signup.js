@@ -75,7 +75,7 @@ function SignUp () {
 
         try {
             // Register user directly with your Flask backend
-            const response = await fetch('http://localhost:5000/api/auth/register ', {
+            const response = await fetch('https://ideal-sniffle-1y3k.onrender.com/api/auth/register ', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -166,7 +166,7 @@ function SignUp () {
 
         try {
             // Step 1: Register with your Flask backend first
-            const backendResponse = await fetch('http://localhost:5000/auth/register', {
+            const backendResponse = await fetch('https://ideal-sniffle-1y3k.onrender.com/auth/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

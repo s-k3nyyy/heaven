@@ -44,7 +44,7 @@ const AddOrphanage = () => {
       };
 
       // Replace with your Flask backend URL
-      const response = await axios.post('http://localhost:5000/api/orphanages', payload);
+      const response = await axios.post('https://ideal-sniffle-1y3k.onrender.com/api/orphanages', payload);
 
       if (response.status === 201) {
         // Success - maybe redirect to orphanage list or profile page

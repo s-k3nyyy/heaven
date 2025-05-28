@@ -33,7 +33,7 @@ const SponsorAChild = () => {
     setErrorMessage('');
 
     try {
-      const response = await axios.post('http://localhost:5000/api/sponsor-child', formData);
+      const response = await axios.post('https://ideal-sniffle-1y3k.onrender.com/api/sponsor-child', formData);
       setSuccessMessage('Child profile submitted successfully! 🎉');
 
       // Optional: Reset form

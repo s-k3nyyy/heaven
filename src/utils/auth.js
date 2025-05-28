@@ -1,7 +1,7 @@
 // utils/auth.js
 // Authentication utility functions for managing tokens and API calls
 
-const API_BASE_URL = 'http://localhost:5000';
+const API_BASE_URL = 'https://ideal-sniffle-1y3k.onrender.com';
 
 // Token management
 export const AuthUtils = {
